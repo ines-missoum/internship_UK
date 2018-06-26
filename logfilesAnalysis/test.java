@@ -6,6 +6,7 @@ public class test {
 		RegExp rg = new RegExp("USERNAME	[a-zA-Z0-9._-]+");
 		System.out.println(rg.getName());
 		System.out.println(rg.getExpr());
+		
 	}
 
 }

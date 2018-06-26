@@ -10,7 +10,7 @@ public class CreationCsvFile {
 
 	public static void main(String[] args) throws IOException {
 
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<String> regExps = new ArrayList<String>();
 
 		/* collect names of regEx */
 		String regExNames = ";";
@@ -25,7 +25,7 @@ public class CreationCsvFile {
 				if (line.length() != 0) {
 					rg = new RegExp(line);
 					regExNames += rg.getName() + ";";
-					names.add(rg.getName());// keep the names to build the next elmts of the csv file
+					regExps.add(rg.getExpr());// keep the regExp to build the next elmts of the csv file
 				}
 
 				line = br.readLine();
@@ -43,17 +43,29 @@ public class CreationCsvFile {
 		FileWriter file = new FileWriter("lattice.csv");
 		BufferedReader br2 = new BufferedReader(new FileReader("syslog.txt"));
 		String lineCSV;
+		String line_logfile;
 		try {
 			file.append(regExNames);
 
-			line = br2.readLine(); /*for the first line of the logfile*/
-			String[] parts = line.split("[:| ]");
-			
+			line_logfile = br2.readLine(); /*for the first line of the logfile*/
+			String[] parts = line_logfile.split("[: ]");
+					
 			for( int i=0; i<parts.length;i++) {
-				lineCSV=parts[i]+"; \n";
+				//lineCSV=parts[i]+"; \n";
+				lineCSV=parts[i]+";";
+				//file.append(lineCSV);
+				System.out.println(parts[i]);
+				for(String s : regExps) {
+					
+					if (parts[i].matches(s)) {
+						lineCSV+=" 1;";
+					}else {
+						lineCSV+=" 0;";
+					}
+				}
+				lineCSV+=" \n";
 				file.append(lineCSV);
 			}
-			
 				/*build the line*/
 	
 		} catch (IOException e) {
