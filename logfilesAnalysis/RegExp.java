@@ -7,7 +7,7 @@ public class RegExp {
 
 	public RegExp(String regExp) {
 
-		String[] parts = regExp.split("[\t ]");
+		String[] parts = regExp.split("[\t ]",2);
 		this.name = parts[0];
 		this.expr = parts[1];
 

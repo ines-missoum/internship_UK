@@ -16,7 +16,7 @@ public class CreationCsvFile {
 		String regExNames = ";";
 		String line;
 		RegExp rg;
-		BufferedReader br = new BufferedReader(new FileReader("regExpExamples.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("expandedREDefs.txt"));
 
 		try {
 			line = br.readLine();
@@ -48,12 +48,17 @@ public class CreationCsvFile {
 			file.append(regExNames);
 
 			line_logfile = br2.readLine(); /*for the first line of the logfile*/
-			String[] parts = line_logfile.split("[: ]");
+			
+			for(int j=0; j<=1; j++) {
+				System.out.println(line_logfile);
+				line_logfile = br2.readLine();
+			}
+			System.out.println(line_logfile);
+			String[] parts = line_logfile.split("[, ]");//"[:, ]"
 					
 			for( int i=0; i<parts.length;i++) {
-				//lineCSV=parts[i]+"; \n";
+				/*we build the line : */
 				lineCSV=parts[i]+";";
-				//file.append(lineCSV);
 				System.out.println(parts[i]);
 				for(String s : regExps) {
 					
@@ -66,7 +71,6 @@ public class CreationCsvFile {
 				lineCSV+=" \n";
 				file.append(lineCSV);
 			}
-				/*build the line*/
 	
 		} catch (IOException e) {
 			e.printStackTrace();
