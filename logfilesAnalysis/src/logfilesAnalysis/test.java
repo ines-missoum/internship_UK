@@ -7,6 +7,9 @@ public class test {
 		System.out.println(rg.getName());
 		System.out.println(rg.getExpr());
 		
+		String regex = "[0-9]+"; 
+		String data = "26"; 
+		System.out.println(data.matches(regex));
 	}
 
 }

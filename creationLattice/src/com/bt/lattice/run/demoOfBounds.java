@@ -19,6 +19,7 @@ import com.bt.graphml.LatticeDiagram;
 import com.bt.graphml.LatticeElement;
 //import com.bt.lattice.Extent;
 	import com.bt.lattice.Concept;
+import com.bt.lattice.Element;
 import com.bt.lattice.Lattice;
 
 	public class demoOfBounds
@@ -103,25 +104,37 @@ import com.bt.lattice.Lattice;
 			LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 			for(LatticeElement node1 :theLattice.getElements())
 			{
-				//System.out.println("node1 : "+node1.getConcept().getIntent());
-				for(LatticeElement node2 :theLattice.getElements())
-				{
-					if(node1 != node2)
-					{
-						getGLB( node1, node2);
+				System.out.println("node1 : " + node1.getConcept().getIntent());
 
-						HashSet<LatticeElement> commonAncestors =  new HashSet(node1.getAncestors());
-						commonAncestors.retainAll(node2.getAncestors());
-						if(commonAncestors.size()>0)
-						{
-							//System.out.println("          node2 : "+node2.getConcept().getIntent());
-							//System.out.println("            -> common parent node : "+commonAncestors.iterator().next().getConcept().getIntent());
+				System.out.println("extent : " + node1.getConcept().getExtent().size() + " elements =");
+				for (Element el : node1.getConcept().getExtent().getElements())
+					System.out.println(el.toString());
 
-						}
-
-					}
-				}
+				System.out.println("REDUCED extent : "
+						+ node1.getConcept().getExtent().getReducedExtent(node1.getDescendants()).size() + " elements =");
+				for (Element el : node1.getConcept().getExtent().getReducedExtent(node1.getDescendants()))
+					System.out.println(el.toString());
 			}
+			
+//				//System.out.println("node1 : "+node1.getConcept().getIntent());
+//				for(LatticeElement node2 :theLattice.getElements())
+//				{
+//					if(node1 != node2)
+//					{
+//						getGLB( node1, node2);
+//
+//						HashSet<LatticeElement> commonAncestors =  new HashSet(node1.getAncestors());
+//						commonAncestors.retainAll(node2.getAncestors());
+//						if(commonAncestors.size()>0)
+//						{
+//							//System.out.println("          node2 : "+node2.getConcept().getIntent());
+//							//System.out.println("            -> common parent node : "+commonAncestors.iterator().next().getConcept().getIntent());
+//
+//						}
+//
+//					}
+//				}
+//			}
 			return 0;
 		}
 

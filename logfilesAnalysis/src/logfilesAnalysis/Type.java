@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Type {
 
 	private String pattern;
-	private int numberOfExamples;
+	private int numberOfExamples; //number of examples of the pattern, initially 0.
 
 	public String getPattern() {
 		return pattern;
