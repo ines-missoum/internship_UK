@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 
 import com.bt.context.Context;
 import com.bt.graphml.ConceptUtil;
 import com.bt.graphml.LatticeDiagram;
 import com.bt.graphml.LatticeElement;
-import com.bt.lattice.Concept;
 import com.bt.lattice.Element;
 import com.bt.lattice.Lattice;
 
@@ -33,7 +31,7 @@ public class SimilarityMeasure2 {
 
 	}
 
-	public int run() {
+	public int run(double threshold) {
 		Context c;
 		try {
 			c = new Context(new File(csv));
@@ -54,16 +52,19 @@ public class SimilarityMeasure2 {
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 		/* for all the couples of concepts : */
-		/* /!\ pas faire les couples dans les deux sens */
-		for (LatticeElement node1 : theLattice.getElements()) {
-			for (LatticeElement node2 : theLattice.getElements()) {
+		for (int i=0; i < theLattice.getElements().size(); i++) {
+			for (int j=i;  j < theLattice.getElements().size() ; j++) {
+				LatticeElement node1 = theLattice.getElements().get(i); 
+				LatticeElement node2 = theLattice.getElements().get(j);
+		
 				if (node1 != node2) {
-					float i = getSimilarity(node1, node2);
-
-					System.out.println("node1 : " + node1.getConcept().getIntent());
-					System.out.println("node2 : " + node2.getConcept().getIntent());
-					System.out.println(i);
-					System.out.println("________");
+					float similarity = getSimilarity(node1, node2);
+					if (similarity > threshold) {
+						System.out.println("node1 : " + node1.getConcept().getIntent());
+						System.out.println("node2 : " + node2.getConcept().getIntent());
+						System.out.println(similarity);
+						System.out.println("________");
+					}
 
 				}
 			}
@@ -77,8 +78,8 @@ public class SimilarityMeasure2 {
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
 		extent1.retainAll(extent2);
 
-		//for (Element el : extent1)
-			//System.out.println(el.toString());
+		// for (Element el : extent1)
+		// System.out.println(el.toString());
 
 		return extent1.size();
 
@@ -90,8 +91,8 @@ public class SimilarityMeasure2 {
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
 		extent1.addAll(extent2);
 
-		//for (Element el : extent1)
-			//System.out.println(el.toString());
+		// for (Element el : extent1)
+		// System.out.println(el.toString());
 
 		return extent1.size();
 
@@ -104,7 +105,8 @@ public class SimilarityMeasure2 {
 	}
 
 	public static void main(String[] args) {
-
+		
+		double threshold = 0.9;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
 							// UK\\creationLattice/026grok";
 				"C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\logfilesAnalysis/lattice";
@@ -115,7 +117,7 @@ public class SimilarityMeasure2 {
 
 		System.out.println("\nprocessing " + theFile + "...");
 		SimilarityMeasure2 db = new SimilarityMeasure2(theFile + ".csv");
-		switch (db.run()) {
+		switch (db.run(threshold)) {
 		case 1:
 			System.err.println("file not found.\n");
 			break;
