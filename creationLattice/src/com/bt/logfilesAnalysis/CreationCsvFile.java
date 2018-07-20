@@ -17,7 +17,7 @@ public class CreationCsvFile {
 		 * package)
 		 **/
 		BufferedReader br = new BufferedReader(
-				new FileReader("petit_test.txt"));/* file of regular expressions ( expandedREDefs.txt) */
+				new FileReader("expandedREDefs.txt"));/* file of regular expressions (petit_test.txt ) */
 		BufferedReader br2 = new BufferedReader(new FileReader("syslog.txt"));/* logfile */
 
 		/** collect names of regEx **/

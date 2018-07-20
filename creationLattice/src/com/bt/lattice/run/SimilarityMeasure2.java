@@ -90,6 +90,7 @@ public class SimilarityMeasure2 {
 			file.close();
 		}
 		
+		getMostSpecificRegExp("Sep ", l);//un espace a chaque fois
 		return 0;
 	}
 
@@ -123,6 +124,35 @@ public class SimilarityMeasure2 {
 
 		return (float) getIntersCardinality(node1, node2) / (float) getUnionCardinality(node1, node2);
 
+	}
+	
+	public void getMostSpecificRegExp(String field, Lattice l) {
+		/* not always an only specific regexp, here we take the first one*/
+		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
+		/*for (LatticeElement node : theLattice.getElements()) {
+			if(node.getConcept().getExtent().getReducedExtent(node.getDescendants()).contains(field)) {
+				
+			}
+		}*/
+
+		boolean found =false;
+		int i=0;
+	
+		LatticeElement node = theLattice.getElements().get(0); 
+		while(i < theLattice.getElements().size() && !found) {
+			node = theLattice.getElements().get(i); 
+				for(Element el:node.getConcept().getExtent().getReducedExtent(node.getDescendants())) {
+					if(el.getName().equals(field)) {
+						found=true;
+					}
+			}
+			
+			i++;
+			
+		}
+		System.out.println(node.getConcept().getExtent().getReducedExtent(node.getDescendants()));
+		System.out.println(node.getConcept().getIntent());
+		System.out.println(found);
 	}
 
 	public static void main(String[] args) throws IOException {
