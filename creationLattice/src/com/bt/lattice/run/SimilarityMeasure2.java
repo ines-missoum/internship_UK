@@ -2,6 +2,7 @@ package com.bt.lattice.run;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -11,6 +12,7 @@ import com.bt.graphml.LatticeDiagram;
 import com.bt.graphml.LatticeElement;
 import com.bt.lattice.Element;
 import com.bt.lattice.Lattice;
+
 
 public class SimilarityMeasure2 {
 
@@ -31,7 +33,7 @@ public class SimilarityMeasure2 {
 
 	}
 
-	public int run(double threshold) {
+	public int run(double threshold) throws IOException {
 		Context c;
 		try {
 			c = new Context(new File(csv));
@@ -51,24 +53,43 @@ public class SimilarityMeasure2 {
 			System.out.println("done (" + l.getConcepts().size() + " concepts)");
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
-		/* for all the couples of concepts : */
-		for (int i=0; i < theLattice.getElements().size(); i++) {
-			for (int j=i;  j < theLattice.getElements().size() ; j++) {
-				LatticeElement node1 = theLattice.getElements().get(i); 
-				LatticeElement node2 = theLattice.getElements().get(j);
-		
-				if (node1 != node2) {
-					float similarity = getSimilarity(node1, node2);
-					if (similarity > threshold) {
-						System.out.println("node1 : " + node1.getConcept().getIntent());
-						System.out.println("node2 : " + node2.getConcept().getIntent());
-						System.out.println(similarity);
-						System.out.println("________");
-					}
+		FileWriter file = new FileWriter("highSimilarity.txt");
+		String highSimilarityCouple="";
+		try {
+			
+			/* for all the couples of concepts : */
+			for (int i=0; i < theLattice.getElements().size(); i++) {
+				for (int j=i;  j < theLattice.getElements().size() ; j++) {
+					LatticeElement node1 = theLattice.getElements().get(i); 
+					LatticeElement node2 = theLattice.getElements().get(j);
+			
+					if (node1 != node2) {
+						float similarity = getSimilarity(node1, node2);
+						if (similarity > threshold) {
+							highSimilarityCouple= "node1 : " + node1.getConcept().getIntent()+"\n";
+							highSimilarityCouple+= "node2 : " + node2.getConcept().getIntent()+"\n";
+							highSimilarityCouple += "similarity : "+similarity+"\n";
+							highSimilarityCouple +="________ \n";
+							file.append(highSimilarityCouple);
+							System.out.println("node1 : " + node1.getConcept().getIntent());
+							System.out.println("node2 : " + node2.getConcept().getIntent());
+							System.out.println("similarity : "+similarity);
+							System.out.println("________");
+							
+							highSimilarityCouple="";
+						}
 
+					}
 				}
 			}
+			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			file.close();
 		}
+		
 		return 0;
 	}
 
@@ -104,7 +125,7 @@ public class SimilarityMeasure2 {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		double threshold = 0.9;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
