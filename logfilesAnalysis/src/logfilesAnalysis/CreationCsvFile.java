@@ -18,7 +18,7 @@ public class CreationCsvFile {
 		 **/
 		BufferedReader br = new BufferedReader(
 				new FileReader("petit_test.txt"));/* file of regular expressions ( expandedREDefs.txt) */
-		BufferedReader br2 = new BufferedReader(new FileReader("syslog.txt"));/* logfile */
+		BufferedReader br2 = new BufferedReader(new FileReader("petit_test_log.txt"));/* logfile */
 
 		/** collect names of regEx **/
 
@@ -60,7 +60,7 @@ public class CreationCsvFile {
 
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
-				line_logfile = br2.readLine();
+				
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
 				Type type;

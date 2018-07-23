@@ -1,10 +1,14 @@
 package com.bt.lattice.run;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import com.bt.context.Context;
 import com.bt.graphml.ConceptUtil;
@@ -13,6 +17,7 @@ import com.bt.graphml.LatticeElement;
 import com.bt.lattice.Element;
 import com.bt.lattice.Lattice;
 
+import com.bt.logfilesAnalysis.*;
 
 public class SimilarityMeasure2 {
 
@@ -21,6 +26,8 @@ public class SimilarityMeasure2 {
 	private final String CSVSUFFIX = ".csv";
 	private final String LATSUFFIX = ".lat";
 	private final boolean silentMode = true;
+	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\logfilesAnalysis/petit_test_log.txt";
+	// logfile to use to create the csv file so there is no bug S
 
 	public SimilarityMeasure2(String csvFile) {
 		if (csvFile.endsWith(CSVSUFFIX)) {
@@ -33,6 +40,7 @@ public class SimilarityMeasure2 {
 
 	}
 
+	/************************* RUN *********************************/
 	public int run(double threshold) throws IOException {
 		Context c;
 		try {
@@ -53,44 +61,12 @@ public class SimilarityMeasure2 {
 			System.out.println("done (" + l.getConcepts().size() + " concepts)");
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
-		FileWriter file = new FileWriter("highSimilarity.txt");
-		String highSimilarityCouple="";
-		try {
-			
-			/* for all the couples of concepts : */
-			for (int i=0; i < theLattice.getElements().size(); i++) {
-				for (int j=i;  j < theLattice.getElements().size() ; j++) {
-					LatticeElement node1 = theLattice.getElements().get(i); 
-					LatticeElement node2 = theLattice.getElements().get(j);
-			
-					if (node1 != node2) {
-						float similarity = getSimilarity(node1, node2);
-						if (similarity > threshold) {
-							highSimilarityCouple= "node1 : " + node1.getConcept().getIntent()+"\n";
-							highSimilarityCouple+= "node2 : " + node2.getConcept().getIntent()+"\n";
-							highSimilarityCouple += "similarity : "+similarity+"\n";
-							highSimilarityCouple +="________ \n";
-							file.append(highSimilarityCouple);
-							System.out.println("node1 : " + node1.getConcept().getIntent());
-							System.out.println("node2 : " + node2.getConcept().getIntent());
-							System.out.println("similarity : "+similarity);
-							System.out.println("________");
-							
-							highSimilarityCouple="";
-						}
 
-					}
-				}
-			}
-			
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			file.close();
-		}
-		
-		getMostSpecificRegExp("Sep ", l);//un espace a chaque fois
+		recordAllBigSimilarity(theLattice, threshold);
+
+		derivePattern(logfile, "", l);
+		// System.out.println(getMostSpecificRegExp("Sep ", l));
+		// un espace a chaque fois
 		return 0;
 	}
 
@@ -125,38 +101,123 @@ public class SimilarityMeasure2 {
 		return (float) getIntersCardinality(node1, node2) / (float) getUnionCardinality(node1, node2);
 
 	}
-	
-	public void getMostSpecificRegExp(String field, Lattice l) {
-		/* not always an only specific regexp, here we take the first one*/
-		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
-		/*for (LatticeElement node : theLattice.getElements()) {
-			if(node.getConcept().getExtent().getReducedExtent(node.getDescendants()).contains(field)) {
-				
-			}
-		}*/
 
-		boolean found =false;
-		int i=0;
-	
-		LatticeElement node = theLattice.getElements().get(0); 
-		while(i < theLattice.getElements().size() && !found) {
-			node = theLattice.getElements().get(i); 
-				for(Element el:node.getConcept().getExtent().getReducedExtent(node.getDescendants())) {
-					if(el.getName().equals(field)) {
-						found=true;
+	public void recordAllBigSimilarity(LatticeDiagram theLattice, double threshold) throws IOException {
+		/*
+		 * Record in a file all the couples that have a similarity upper than the
+		 * threshold
+		 */
+
+		FileWriter file = new FileWriter("highSimilarity.txt");
+		String highSimilarityCouple = "";
+		try {
+
+			/* for all the couples of concepts : */
+			for (int i = 0; i < theLattice.getElements().size(); i++) {
+				for (int j = i; j < theLattice.getElements().size(); j++) {
+					LatticeElement node1 = theLattice.getElements().get(i);
+					LatticeElement node2 = theLattice.getElements().get(j);
+
+					if (node1 != node2) {
+						float similarity = getSimilarity(node1, node2);
+						if (similarity > threshold) {
+							highSimilarityCouple = "node1 : " + node1.getConcept().getIntent() + "\n";
+							highSimilarityCouple += "node2 : " + node2.getConcept().getIntent() + "\n";
+							highSimilarityCouple += "similarity : " + similarity + "\n";
+							highSimilarityCouple += "________ \n";
+							file.append(highSimilarityCouple);
+							System.out.println("node1 : " + node1.getConcept().getIntent());
+							System.out.println("node2 : " + node2.getConcept().getIntent());
+							System.out.println("similarity : " + similarity);
+							System.out.println("________");
+
+							highSimilarityCouple = "";
+						}
+
 					}
+				}
 			}
-			
-			i++;
-			
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			file.close();
 		}
-		System.out.println(node.getConcept().getExtent().getReducedExtent(node.getDescendants()));
-		System.out.println(node.getConcept().getIntent());
-		System.out.println(found);
+
+	}
+
+	public String getMostSpecificRegExp(String field, Lattice l) {
+		/* not always an only specific regexp, here we take the first one */
+		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
+		/*
+		 * for (LatticeElement node : theLattice.getElements()) {
+		 * if(node.getConcept().getExtent().getReducedExtent(node.getDescendants()).
+		 * contains(field)) {
+		 * 
+		 * } }
+		 */
+
+		boolean found = false;
+		int i = 0;
+
+		LatticeElement node = theLattice.getElements().get(0);
+		while (i < theLattice.getElements().size() && !found) {
+			node = theLattice.getElements().get(i);
+			for (Element el : node.getConcept().getExtent().getReducedExtent(node.getDescendants())) {
+				if (el.getName().equals(field)) {
+					found = true;
+				}
+			}
+
+			i++;
+
+		}
+		// System.out.println(node.getConcept().getExtent().getReducedExtent(node.getDescendants()));
+		/*
+		 * System.out.println(node.getConcept().getIntent()); System.out.println(found);
+		 */
+
+		String s = "";
+		if (!node.getConcept().getIntent().getElements().isEmpty()) {
+			Iterator<Integer> it = node.getConcept().getIntent().getElements().iterator();
+			s = l.getAttributes()[it.next()];
+		}
+		// System.out.println(s);
+		return s;
+	}
+
+	public void derivePattern(String logfile, String regExpFile, Lattice l) throws IOException {
+
+		BufferedReader br2 = new BufferedReader(new FileReader(logfile));
+		String line_logfile;
+		String regExp;
+		String field;
+		try {
+
+			line_logfile = br2.readLine();
+			while (line_logfile != null) {
+				// line_logfile = br2.readLine();
+				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
+															// space
+
+				for (int i = 0; i < parts.length; i++) {
+					field = parts[i] + " ";
+					regExp = getMostSpecificRegExp(field, l);
+					System.out.print(regExp + " ");
+				}
+				System.out.println();
+				line_logfile = br2.readLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			br2.close();
+		}
+
 	}
 
 	public static void main(String[] args) throws IOException {
-		
+
 		double threshold = 0.9;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
 							// UK\\creationLattice/026grok";
