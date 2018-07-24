@@ -1,16 +1,16 @@
 node1 : []
 node2 : [digits]
-similarity : 0.33333334
+similarity : 0.5
 ________ 
 node1 : []
 node2 : [vowels, letters]
-similarity : 0.33333334
+similarity : 0.2
 ________ 
 node1 : []
 node2 : [letters]
-similarity : 0.6666667
+similarity : 0.5
 ________ 
 node1 : [vowels, letters]
 node2 : [letters]
-similarity : 0.5
+similarity : 0.4
 ________ 

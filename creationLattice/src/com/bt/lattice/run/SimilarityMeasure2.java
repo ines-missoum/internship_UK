@@ -27,6 +27,7 @@ public class SimilarityMeasure2 {
 	private final String LATSUFFIX = ".lat";
 	private final boolean silentMode = true;
 	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\logfilesAnalysis/petit_test_log.txt";
+	private CreationCsvFile csvFile = new CreationCsvFile();
 	// logfile to use to create the csv file so there is no bug S
 
 	public SimilarityMeasure2(String csvFile) {
@@ -74,12 +75,33 @@ public class SimilarityMeasure2 {
 
 		HashSet<Element> extent1 = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
-		extent1.retainAll(extent2);
+		
+		
+		HashSet<String> allExamples1 = new HashSet<String>();
+		HashSet<String> allExamples2 = new HashSet<String>();;
+		Type type=new Type("");
+		String pattern ="";
+		String name;
+		
+		for (Element e1: extent1) {
+			name = e1.getName().replaceAll(" ", "");
+			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
+			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			allExamples1.addAll(type.getExamples());// to have all the examples of the type
+		}
+		
+		for (Element e2: extent2) {
+			name = e2.getName().replaceAll(" ", "");
+			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
+			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			allExamples2.addAll(type.getExamples());// to have all the examples of the type
+		}
 
-		// for (Element el : extent1)
-		// System.out.println(el.toString());
 
-		return extent1.size();
+		allExamples1.retainAll(allExamples2);
+
+		return allExamples1.size();
+
 
 	}
 
@@ -87,19 +109,34 @@ public class SimilarityMeasure2 {
 
 		HashSet<Element> extent1 = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
-		/*HashSet<String> allExamples1;
-		HashSet<String> allExamples2;
-		for (Element e1:exetent1) {
-			
-		}*/
+		HashSet<String> allExamples1 = new HashSet<String>();
+		HashSet<String> allExamples2 = new HashSet<String>();;
+		Type type=new Type("");
+		String pattern ="";
+		String name;
+		// pb : les listes allExamples sont vides pk getname a un espace en trop a la fin
 		
+		for (Element e1: extent1) {
+			name = e1.getName().replaceAll(" ", "");
+			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
+			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			allExamples1.addAll(type.getExamples());// to have all the examples of the type
+		}
+		//System.out.println("ext1 ==== "+ extent1.toString());
+		//System.out.println("allex1 ==== "+ allExamples1.toString());
+		
+		for (Element e2: extent2) {
+			name = e2.getName().replaceAll(" ", "");
+			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
+			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			allExamples2.addAll(type.getExamples());// to have all the examples of the type
+		}
+		//System.out.println("ext2 ==== "+ extent2.toString());
+		//System.out.println("allex2 ==== "+ allExamples2.toString());
 
-		extent1.addAll(extent2);
+		allExamples1.addAll(allExamples2);
 
-		// for (Element el : extent1)
-		// System.out.println(el.toString());
-
-		return extent1.size();
+		return allExamples1.size();
 
 	}
 
@@ -237,6 +274,7 @@ public class SimilarityMeasure2 {
 
 		System.out.println("\nprocessing " + theFile + "...");
 		SimilarityMeasure2 db = new SimilarityMeasure2(theFile + ".csv");
+		db.csvFile.run();
 		switch (db.run(threshold)) {
 		case 1:
 			System.err.println("file not found.\n");

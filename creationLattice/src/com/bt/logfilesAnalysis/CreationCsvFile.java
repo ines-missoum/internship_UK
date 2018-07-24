@@ -22,6 +22,27 @@ public class CreationCsvFile {
 		this.types  = new ArrayList<Type>();
 	}
 	
+	
+	public ArrayList<String> getRegExps() {
+		return regExps;
+	}
+
+
+	public ArrayList<Type> getTypes() {
+		return types;
+	}
+
+
+	public static String getLogfile() {
+		return logfile;
+	}
+
+
+	public static String getRegexpfile() {
+		return RegExpFile;
+	}
+
+
 	public static String getPattern(String field, ArrayList<String> regExps) {
 		String pattern = "";
 
@@ -30,6 +51,7 @@ public class CreationCsvFile {
 			if (field.matches(s)) {
 				pattern += " ,1";
 			} else {
+				//System.out.println(field+ " dont match "+ s);
 				pattern += " ,0";
 			}
 		}
