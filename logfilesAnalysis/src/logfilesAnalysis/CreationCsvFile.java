@@ -8,13 +8,28 @@ import java.util.ArrayList;
 
 public class CreationCsvFile {
 
+	public static String getPattern(String field, ArrayList<String> regExps) {
+		String pattern = "";
+
+		for (String s : regExps) {
+
+			if (field.matches(s)) {
+				pattern += " ,1";
+			} else {
+				pattern += " ,0";
+			}
+		}
+
+		return pattern;
+	}
+
 	public static void main(String[] args) throws IOException {
 		/**
 		 * Java software that take: - an expanded file of regular expressions (line
-		 * format : NAME regEx => cf. RegExp class) - a logfile (all the elements are separated with a
-		 * space) and output a CSV file for lattice production (each element is
-		 * separated with a comma so we can use this csv file in the creationLattice
-		 * package)
+		 * format : NAME regEx => cf. RegExp class) - a logfile (all the elements are
+		 * separated with a space) and output a CSV file for lattice production (each
+		 * element is separated with a comma so we can use this csv file in the
+		 * creationLattice package)
 		 **/
 		BufferedReader br = new BufferedReader(
 				new FileReader("petit_test.txt"));/* file of regular expressions ( expandedREDefs.txt) */
@@ -50,7 +65,7 @@ public class CreationCsvFile {
 		/** creation of the csv file **/
 
 		FileWriter file = new FileWriter("lattice.csv");
-		ArrayList<Type> types = new ArrayList<Type>();//list of all the types recorded
+		ArrayList<Type> types = new ArrayList<Type>();// list of all the types recorded
 		String lineCSV;
 		String line_logfile;
 		String pattern = "";
@@ -60,23 +75,14 @@ public class CreationCsvFile {
 
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
-				
+
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
 				Type type;
 
 				for (int i = 0; i < parts.length; i++) {
 					/* We analyze each part of the logfile: */
-					pattern = "";
-
-					for (String s : regExps) {
-
-						if (parts[i].matches(s)) {
-							pattern += " ,1";
-						} else {
-							pattern += " ,0";
-						}
-					}
+					pattern = getPattern(parts[i], regExps);
 
 					lineCSV = parts[i] + pattern;
 
@@ -86,7 +92,7 @@ public class CreationCsvFile {
 					 */
 					type = Type.getType(pattern, types);
 
-					if (type.getNumberOfExamples() == 0) {/* if new type */
+					if (type.getNumberOfExamples() == 0) {/* if new type */ 
 						types.add(type);
 						lineCSV += " \n";
 						file.append(lineCSV);

@@ -5,24 +5,41 @@ import java.util.ArrayList;
 public class Type {
 
 	private String pattern;
-	private int numberOfExamples; //number of examples of the pattern, initially 0.
+	private String reference;//one of the examples
+	private ArrayList<String> examples; // list of the (different) examples that have the same pattern
+
+	
+
+	public Type(String pattern) {
+		super();
+		this.pattern = pattern;
+		this.examples = new ArrayList<String>();
+	}
+	
+	
+	public String getReference() {
+		return reference;
+	}
+
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
 
 	public String getPattern() {
 		return pattern;
 	}
 
-	public int getNumberOfExamples() {
-		return numberOfExamples;
+	public ArrayList<String> getExamples() {
+		return examples;
 	}
 
-	public Type(String pattern) {
-		super();
-		this.pattern = pattern;
-		this.numberOfExamples = 0;
-	}
+	public void addExample(String newExample) {
 
-	public void addExample() {
-		this.numberOfExamples++;
+		if (!examples.contains(newExample)) {
+			examples.add(newExample);
+		}
 
 	}
 
@@ -47,5 +64,6 @@ public class Type {
 		return type;
 
 	}
+	
 
 }

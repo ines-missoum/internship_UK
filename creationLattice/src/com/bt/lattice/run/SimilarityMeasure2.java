@@ -64,7 +64,7 @@ public class SimilarityMeasure2 {
 
 		recordAllBigSimilarity(theLattice, threshold);
 
-		derivePattern(logfile, "", l);
+		// derivePattern(logfile, "", l);
 		// System.out.println(getMostSpecificRegExp("Sep ", l));
 		// un espace a chaque fois
 		return 0;
@@ -87,6 +87,13 @@ public class SimilarityMeasure2 {
 
 		HashSet<Element> extent1 = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
+		/*HashSet<String> allExamples1;
+		HashSet<String> allExamples2;
+		for (Element e1:exetent1) {
+			
+		}*/
+		
+
 		extent1.addAll(extent2);
 
 		// for (Element el : extent1)
@@ -121,6 +128,7 @@ public class SimilarityMeasure2 {
 					if (node1 != node2) {
 						float similarity = getSimilarity(node1, node2);
 						if (similarity > threshold) {
+
 							highSimilarityCouple = "node1 : " + node1.getConcept().getIntent() + "\n";
 							highSimilarityCouple += "node2 : " + node2.getConcept().getIntent() + "\n";
 							highSimilarityCouple += "similarity : " + similarity + "\n";
@@ -218,7 +226,7 @@ public class SimilarityMeasure2 {
 
 	public static void main(String[] args) throws IOException {
 
-		double threshold = 0.9;
+		double threshold = 0.2;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
 							// UK\\creationLattice/026grok";
 				"C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\logfilesAnalysis/lattice";
