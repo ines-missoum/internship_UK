@@ -26,7 +26,7 @@ public class SimilarityMeasure2 {
 	private final String CSVSUFFIX = ".csv";
 	private final String LATSUFFIX = ".lat";
 	private final boolean silentMode = true;
-	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\creationLattice/petit_test_log.txt";
+	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\creationLattice/syslog.txt";
 	private CreationCsvFile csvFile = new CreationCsvFile();
 	// logfile to use to create the csv file so there is no bug S
 
@@ -63,10 +63,11 @@ public class SimilarityMeasure2 {
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 
-		//recordAllBigSimilarity(theLattice, threshold);
+		// recordAllBigSimilarity(theLattice, threshold);
 
-		//System.out.println(" VOILA "+Type.findReference("26", this.csvFile.getTypes()));
-		derivePattern(logfile, "", l);
+		// System.out.println(" VOILA "+Type.findReference("26",
+		// this.csvFile.getTypes()));
+		derivePattern(logfile, l);
 		// System.out.println(getMostSpecificRegExp("Sep ", l));
 		// un espace a chaque fois
 		return 0;
@@ -76,33 +77,31 @@ public class SimilarityMeasure2 {
 
 		HashSet<Element> extent1 = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
-		
-		
+
 		HashSet<String> allExamples1 = new HashSet<String>();
-		HashSet<String> allExamples2 = new HashSet<String>();;
-		Type type=new Type("");
-		String pattern ="";
+		HashSet<String> allExamples2 = new HashSet<String>();
+		;
+		Type type = new Type("");
+		String pattern = "";
 		String name;
-		
-		for (Element e1: extent1) {
+
+		for (Element e1 : extent1) {
 			name = e1.getName().replaceAll(" ", "");
-			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
-			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			pattern = CreationCsvFile.getPattern(name, this.csvFile.getRegExps());
+			type = Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern
 			allExamples1.addAll(type.getExamples());// to have all the examples of the type
 		}
-		
-		for (Element e2: extent2) {
+
+		for (Element e2 : extent2) {
 			name = e2.getName().replaceAll(" ", "");
-			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
-			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			pattern = CreationCsvFile.getPattern(name, this.csvFile.getRegExps());
+			type = Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern
 			allExamples2.addAll(type.getExamples());// to have all the examples of the type
 		}
-
 
 		allExamples1.retainAll(allExamples2);
 
 		return allExamples1.size();
-
 
 	}
 
@@ -111,29 +110,31 @@ public class SimilarityMeasure2 {
 		HashSet<Element> extent1 = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		HashSet<Element> extent2 = new HashSet<Element>(node2.getConcept().getExtent().getElements());
 		HashSet<String> allExamples1 = new HashSet<String>();
-		HashSet<String> allExamples2 = new HashSet<String>();;
-		Type type=new Type("");
-		String pattern ="";
+		HashSet<String> allExamples2 = new HashSet<String>();
+		;
+		Type type = new Type("");
+		String pattern = "";
 		String name;
-		// pb : les listes allExamples sont vides pk getname a un espace en trop a la fin
-		
-		for (Element e1: extent1) {
+		// pb : les listes allExamples sont vides pk getname a un espace en trop a la
+		// fin
+
+		for (Element e1 : extent1) {
 			name = e1.getName().replaceAll(" ", "");
-			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
-			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			pattern = CreationCsvFile.getPattern(name, this.csvFile.getRegExps());
+			type = Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern
 			allExamples1.addAll(type.getExamples());// to have all the examples of the type
 		}
-		//System.out.println("ext1 ==== "+ extent1.toString());
-		//System.out.println("allex1 ==== "+ allExamples1.toString());
-		
-		for (Element e2: extent2) {
+		// System.out.println("ext1 ==== "+ extent1.toString());
+		// System.out.println("allex1 ==== "+ allExamples1.toString());
+
+		for (Element e2 : extent2) {
 			name = e2.getName().replaceAll(" ", "");
-			pattern = CreationCsvFile.getPattern(name,  this.csvFile.getRegExps());
-			type=Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern 
+			pattern = CreationCsvFile.getPattern(name, this.csvFile.getRegExps());
+			type = Type.getType(pattern, this.csvFile.getTypes());// to have the type of a pattern
 			allExamples2.addAll(type.getExamples());// to have all the examples of the type
 		}
-		//System.out.println("ext2 ==== "+ extent2.toString());
-		//System.out.println("allex2 ==== "+ allExamples2.toString());
+		// System.out.println("ext2 ==== "+ extent2.toString());
+		// System.out.println("allex2 ==== "+ allExamples2.toString());
 
 		allExamples1.addAll(allExamples2);
 
@@ -193,7 +194,8 @@ public class SimilarityMeasure2 {
 	}
 
 	public LatticeElement getMostSpecificRegExp(String field, Lattice l) {
-		//print the mostSpecificRegExp (for the human to know) and return the node to apply the getSimilarity method
+		// print the mostSpecificRegExp (for the human to know) and return the node to
+		// apply the getSimilarity method
 		/* not always an only specific regexp, here we take the first one */
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 		/*
@@ -229,17 +231,18 @@ public class SimilarityMeasure2 {
 			Iterator<Integer> it = node.getConcept().getIntent().getElements().iterator();
 			s = l.getAttributes()[it.next()];
 		}
-		System.out.print(s+" ");
+		System.out.print(s + " ");
 		return node;
 	}
 
-	public void derivePattern(String logfile, String regExpFile, Lattice l) throws IOException {
+	public void derivePattern(String logfile, Lattice l) throws IOException {
 
-		//for now print all the mostSpecificRegExp of the logfile.
+		// for now print all the mostSpecificRegExp of the logfile.
 		BufferedReader br2 = new BufferedReader(new FileReader(logfile));
 		String line_logfile;
-		String regExp;
 		String field;
+		ArrayList<LatticeElement> listNode = new ArrayList<LatticeElement>();
+		ArrayList<Pattern> patterns = new ArrayList<Pattern>();
 		try {
 
 			line_logfile = br2.readLine();
@@ -248,14 +251,23 @@ public class SimilarityMeasure2 {
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
 				String reference = "";
-				
+				listNode = new ArrayList<LatticeElement>();
 				for (int i = 0; i < parts.length; i++) {
 					reference = Type.findReference(parts[i], this.csvFile.getTypes());
-					field = reference + " ";// because the methode getName() used in getMostSpecificRegExp put a space at the end.
-					
-					getMostSpecificRegExp(field, l);
-					
+					field = reference + " ";// because the methode getName() used in getMostSpecificRegExp put a space
+											// at the end.
+
+					listNode.add(getMostSpecificRegExp(field, l));
+
 				}
+				
+				Pattern p = Pattern.getPattern(listNode, patterns);
+				// we check if the pattern doesn't already exist:
+				if (p.getNumberOfExamples() == 0) {// new pattern
+					patterns.add(p);
+				}
+				p.addAnExamples();
+
 				System.out.println();
 				line_logfile = br2.readLine();
 			}
@@ -264,6 +276,15 @@ public class SimilarityMeasure2 {
 		} finally {
 			br2.close();
 		}
+		System.out.println("_____________________________________________");
+		for (Pattern p : patterns) {
+			if (p.getNumberOfExamples()>1) {
+			System.out.println(p.getListRegExp().toString());
+			System.out.println(p.getNumberOfExamples());
+			System.out.println();
+			}
+		}
+		System.out.println(patterns.size());
 
 	}
 

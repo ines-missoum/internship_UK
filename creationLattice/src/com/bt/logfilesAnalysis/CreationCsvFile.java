@@ -10,8 +10,8 @@ public class CreationCsvFile {
 	
 	private ArrayList<String> regExps;// list of all the regEx of the file of regular expressions
 	private ArrayList<Type> types;//list of all the types recorded
-	private static final String logfile = "petit_test_log.txt";//"petit_test_log.txt";
-	private static final String RegExpFile = "petit_test.txt";//"petit_test.txt";
+	private static final String logfile = "syslog.txt";//"petit_test_log.txt";
+	private static final String RegExpFile = "expandedREDefs.txt";//"petit_test.txt";
 	//a voir si je les mets final ou pas
 	
 	
