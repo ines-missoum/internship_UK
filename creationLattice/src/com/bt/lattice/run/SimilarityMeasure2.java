@@ -26,7 +26,7 @@ public class SimilarityMeasure2 {
 	private final String CSVSUFFIX = ".csv";
 	private final String LATSUFFIX = ".lat";
 	private final boolean silentMode = true;
-	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\logfilesAnalysis/petit_test_log.txt";
+	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\creationLattice/petit_test_log.txt";
 	private CreationCsvFile csvFile = new CreationCsvFile();
 	// logfile to use to create the csv file so there is no bug S
 
@@ -63,9 +63,10 @@ public class SimilarityMeasure2 {
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 
-		recordAllBigSimilarity(theLattice, threshold);
+		//recordAllBigSimilarity(theLattice, threshold);
 
-		// derivePattern(logfile, "", l);
+		//System.out.println(" VOILA "+Type.findReference("26", this.csvFile.getTypes()));
+		derivePattern(logfile, "", l);
 		// System.out.println(getMostSpecificRegExp("Sep ", l));
 		// un espace a chaque fois
 		return 0;
@@ -191,7 +192,8 @@ public class SimilarityMeasure2 {
 
 	}
 
-	public String getMostSpecificRegExp(String field, Lattice l) {
+	public LatticeElement getMostSpecificRegExp(String field, Lattice l) {
+		//print the mostSpecificRegExp (for the human to know) and return the node to apply the getSimilarity method
 		/* not always an only specific regexp, here we take the first one */
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 		/*
@@ -227,12 +229,13 @@ public class SimilarityMeasure2 {
 			Iterator<Integer> it = node.getConcept().getIntent().getElements().iterator();
 			s = l.getAttributes()[it.next()];
 		}
-		// System.out.println(s);
-		return s;
+		System.out.print(s+" ");
+		return node;
 	}
 
 	public void derivePattern(String logfile, String regExpFile, Lattice l) throws IOException {
 
+		//for now print all the mostSpecificRegExp of the logfile.
 		BufferedReader br2 = new BufferedReader(new FileReader(logfile));
 		String line_logfile;
 		String regExp;
@@ -244,11 +247,14 @@ public class SimilarityMeasure2 {
 				// line_logfile = br2.readLine();
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
-
+				String reference = "";
+				
 				for (int i = 0; i < parts.length; i++) {
-					field = parts[i] + " ";
-					regExp = getMostSpecificRegExp(field, l);
-					System.out.print(regExp + " ");
+					reference = Type.findReference(parts[i], this.csvFile.getTypes());
+					field = reference + " ";// because the methode getName() used in getMostSpecificRegExp put a space at the end.
+					
+					getMostSpecificRegExp(field, l);
+					
 				}
 				System.out.println();
 				line_logfile = br2.readLine();
@@ -263,10 +269,10 @@ public class SimilarityMeasure2 {
 
 	public static void main(String[] args) throws IOException {
 
-		double threshold = 0.2;
+		double threshold = 0.9;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
 							// UK\\creationLattice/026grok";
-				"C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\logfilesAnalysis/lattice";
+				"C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\creationLattice/lattice";
 
 		if (args.length == 1) {
 			theFile = args[1];

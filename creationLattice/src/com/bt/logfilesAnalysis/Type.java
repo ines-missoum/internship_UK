@@ -5,27 +5,22 @@ import java.util.ArrayList;
 public class Type {
 
 	private String pattern;
-	private String reference;//one of the examples
+	private String reference;// one of the examples
 	private ArrayList<String> examples; // list of the (different) examples that have the same pattern
-
-	
 
 	public Type(String pattern) {
 		super();
 		this.pattern = pattern;
 		this.examples = new ArrayList<String>();
 	}
-	
-	
+
 	public String getReference() {
 		return reference;
 	}
 
-
 	public void setReference(String reference) {
 		this.reference = reference;
 	}
-
 
 	public String getPattern() {
 		return pattern;
@@ -64,6 +59,26 @@ public class Type {
 		return type;
 
 	}
-	
+
+	public static String findReference(String field, ArrayList<Type> types) {
+
+		boolean found = false;
+		int i = 0;
+		String ref = "";
+
+		while (!found && i < types.size()) {
+			found = field.equals(types.get(i).reference);// si c'est la reference direct
+			
+			if (!found)
+				found = types.get(i).getExamples().contains(field);// sinon
+			
+			i++;
+		}
+
+		if (found)
+			ref = types.get(i-1).reference;
+
+		return ref;
+	}
 
 }
