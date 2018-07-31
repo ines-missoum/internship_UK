@@ -21,12 +21,16 @@ import com.bt.logfilesAnalysis.*;
 
 public class SimilarityMeasure2 {
 
+	private final double threshold = 0.3;
+
 	private String csv;
 	private String rootName;
 	private final String CSVSUFFIX = ".csv";
 	private final String LATSUFFIX = ".lat";
 	private final boolean silentMode = true;
-	private final String logfile = "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship UK\\creationLattice/syslog.txt";
+	// private final String logfile = "C:\\Users\\Inès
+	// MISSOUM\\Documents\\IG3\\Semestre 2\\internship
+	// UK\\creationLattice/petit_test_log.txt";
 	private CreationCsvFile csvFile = new CreationCsvFile();
 	// logfile to use to create the csv file so there is no bug S
 
@@ -42,7 +46,7 @@ public class SimilarityMeasure2 {
 	}
 
 	/************************* RUN *********************************/
-	public int run(double threshold) throws IOException {
+	public int run() throws IOException {
 		Context c;
 		try {
 			c = new Context(new File(csv));
@@ -52,8 +56,8 @@ public class SimilarityMeasure2 {
 			return 2;
 		}
 
-		System.out
-				.println("csv: (" + c.getObjects().length + " objects and " + c.getAttributes().length + " attributes");
+		System.out.println(
+				"csv: (" + c.getObjects().length + " objects and " + c.getAttributes().length + " attributes)");
 
 		if (!silentMode)
 			System.out.print("creating lattice...");
@@ -63,11 +67,11 @@ public class SimilarityMeasure2 {
 
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 
-		// recordAllBigSimilarity(theLattice, threshold);
+		recordAllBigSimilarity(theLattice, this.threshold);
 
 		// System.out.println(" VOILA "+Type.findReference("26",
 		// this.csvFile.getTypes()));
-		derivePattern(logfile, l);
+		derivePattern(CreationCsvFile.getLogfile(), l);
 		// System.out.println(getMostSpecificRegExp("Sep ", l));
 		// un espace a chaque fois
 		return 0;
@@ -115,8 +119,6 @@ public class SimilarityMeasure2 {
 		Type type = new Type("");
 		String pattern = "";
 		String name;
-		// pb : les listes allExamples sont vides pk getname a un espace en trop a la
-		// fin
 
 		for (Element e1 : extent1) {
 			name = e1.getName().replaceAll(" ", "");
@@ -226,13 +228,16 @@ public class SimilarityMeasure2 {
 		 * System.out.println(node.getConcept().getIntent()); System.out.println(found);
 		 */
 
+		return node;
+	}
+
+	public static String getMostSpecificRegExpString(LatticeElement node, Lattice l) {
 		String s = "";
 		if (!node.getConcept().getIntent().getElements().isEmpty()) {
 			Iterator<Integer> it = node.getConcept().getIntent().getElements().iterator();
 			s = l.getAttributes()[it.next()];
 		}
-		System.out.print(s + " ");
-		return node;
+		return s;
 	}
 
 	public void derivePattern(String logfile, Lattice l) throws IOException {
@@ -243,10 +248,13 @@ public class SimilarityMeasure2 {
 		String field;
 		ArrayList<LatticeElement> listNode = new ArrayList<LatticeElement>();
 		ArrayList<Pattern> patterns = new ArrayList<Pattern>();
+
+		// we find all the differents patterns
 		try {
 
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
+
 				// line_logfile = br2.readLine();
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
@@ -260,15 +268,15 @@ public class SimilarityMeasure2 {
 					listNode.add(getMostSpecificRegExp(field, l));
 
 				}
-				
-				Pattern p = Pattern.getPattern(listNode, patterns);
+
+				Pattern p = Pattern.getPattern(listNode, patterns, l);
 				// we check if the pattern doesn't already exist:
 				if (p.getNumberOfExamples() == 0) {// new pattern
 					patterns.add(p);
+
 				}
 				p.addAnExamples();
 
-				System.out.println();
 				line_logfile = br2.readLine();
 			}
 		} catch (IOException e) {
@@ -276,21 +284,124 @@ public class SimilarityMeasure2 {
 		} finally {
 			br2.close();
 		}
-		System.out.println("_____________________________________________");
+
+		// list of all the patterns (without derivation)
+		// faire une fonction
+		String s = "";
+		System.out.println("\n total : " + patterns.size() + " patterns");
 		for (Pattern p : patterns) {
-			if (p.getNumberOfExamples()>1) {
-			System.out.println(p.getListRegExp().toString());
-			System.out.println(p.getNumberOfExamples());
-			System.out.println();
+			s = "";
+			// if (p.getNumberOfExamples() > 1) {
+			// System.out.println(p.getListNode().toString());
+			s = p.getNumberOfExamples() + " examples : ";
+			for (LatticeElement node : p.getListNode()) {
+				s = s + getMostSpecificRegExpString(node, l) + " ";
+			}
+			s = s + "\n";
+			System.out.println(s);
+			// }
+
+		}
+
+		ArrayList<Pattern> derivedPatterns = new ArrayList<Pattern>();//list of
+		// derived pattern
+		// faire une fonction qui prend en paramettre une liste de pattern
+		Pattern p;
+		for (int i = 0; i < patterns.size(); i++) {
+			for (int j = i; j < patterns.size(); j++) {
+				if (patterns.get(i) != patterns.get(j)) {
+					p = combinedPattern(patterns.get(i), patterns.get(j), l);
+					if (p.getListNode().size() != 0) {
+						System.out.println(patterns.get(i).toString(l));
+						System.out.println(patterns.get(j).toString(l));
+						System.out.println("change for : " + p.toString(l));
+						System.out.println("_____________________________");
+						derivedPatterns.add(p);
+					}
+				}
+
 			}
 		}
-		System.out.println(patterns.size());
+		
+		//print the number of derived patterns
+
+		System.out.println(derivedPatterns.size());
+	}
+
+	public Pattern combinedPattern(Pattern p1, Pattern p2, Lattice l) {
+
+		boolean similar = p2.getListNode().size() == p1.getListNode().size();
+		Pattern p = p1;
+		int i = 0;
+		LatticeElement n1, n2;
+
+		while (similar && i < p2.getListNode().size()) {
+
+			n1 = p1.getListNode().get(i);
+			n2 = p2.getListNode().get(i);
+
+			if (n1 != n2) {
+				similar = getSimilarity(n1, n2) > this.threshold;
+
+				if (similar)
+					p.changeNode(i, getGLB(n1, n2));
+				// If we find two expressions R1, R2 where this is true, we can replace them
+				// with a new regexp pattern R where the regexp at position i is given by
+				// R(i) = common ancestor(R1(i), R2(i))
+			}
+			i++;
+
+		}
+
+		// renvoie un pattern vide si c'est pas similaire
+		if (!similar) {
+			p = new Pattern(new ArrayList<>());
+		}
+		return p;
+
+	}
+
+	public LatticeElement getGLB(LatticeElement node1, LatticeElement node2) {
+		/* for now print the GLB of two nodes */
+
+		LatticeElement GLB = node1;
+		HashSet<LatticeElement> commonAncestors = new HashSet<LatticeElement>(node1.getAncestors());
+		commonAncestors.retainAll(node2.getAncestors());
+
+		HashSet<LatticeElement> commonAncestorsGLB = commonAncestors;
+		if (commonAncestors.size() > 0) {
+
+			for (LatticeElement node : commonAncestors) {
+				commonAncestorsGLB.retainAll(node.getDescendants());
+				if (commonAncestorsGLB.size() == commonAncestors.size()) {
+					/* GLB is an ancestor which has no children in the commonAncestors list : */
+
+					GLB = node;
+
+					/*
+					 * System.out.println(node1.getConcept().getExtent() + "!!!!!" +
+					 * node2.getConcept().getExtent() + "!!!!!!!!!!!!!!!!!!!!!!! : " +
+					 * GLB.getConcept().getExtent());
+					 * 
+					 * int c = node1.getConcept().getExtent().size() +
+					 * node2.getConcept().getExtent().size()/*-GLBCardinality
+					 *//*
+						 * ; System.out.println("[ " + node1.getConcept().getExtent().size() + " ; " +
+						 * node2.getConcept().getExtent().size() + " ] --> " + GLBCardinality + "___" +
+						 * c);
+						 */
+
+				}
+				commonAncestorsGLB = commonAncestors;
+			}
+		}
+
+		return GLB;
 
 	}
 
 	public static void main(String[] args) throws IOException {
 
-		double threshold = 0.9;
 		String theFile = // "C:\\Users\\Inès MISSOUM\\Documents\\IG3\\Semestre 2\\internship
 							// UK\\creationLattice/026grok";
 				"C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\creationLattice/lattice";
@@ -302,7 +413,7 @@ public class SimilarityMeasure2 {
 		System.out.println("\nprocessing " + theFile + "...");
 		SimilarityMeasure2 db = new SimilarityMeasure2(theFile + ".csv");
 		db.csvFile.run();
-		switch (db.run(threshold)) {
+		switch (db.run()) {
 		case 1:
 			System.err.println("file not found.\n");
 			break;
