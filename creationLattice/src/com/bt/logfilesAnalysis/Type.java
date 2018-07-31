@@ -62,16 +62,16 @@ public class Type {
 
 	public static String findReference(String field, ArrayList<Type> types) {
 
+		//finds the reference of the type of the field
 		boolean found = false;
 		int i = 0;
 		String ref = "";
 
 		while (!found && i < types.size()) {
-			found = field.equals(types.get(i).reference);// si c'est la reference direct
 			
+			found = field.equals(types.get(i).reference);// if the field is a reference of a type
 			if (!found)
-				found = types.get(i).getExamples().contains(field);// sinon
-			
+				found = types.get(i).getExamples().contains(field);// else
 			i++;
 		}
 

@@ -7,69 +7,60 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class CreationCsvFile {
-	
+
 	private ArrayList<String> regExps;// list of all the regEx of the file of regular expressions
-	private ArrayList<Type> types;//list of all the types recorded
-	private static final String logfile = "syslog.txt";//"petit_test_log.txt";
-	private static final String RegExpFile = "expandedREDefs.txt";//"petit_test.txt";
-	//a voir si je les mets final ou pas
-	
-	
-	
+	private ArrayList<Type> types;// list of all the types recorded
+	private static String logfile = "syslog.txt";// "petit_test_log.txt";
+	private static String RegExpFile = "expandedREDefs.txt";// "petit_test.txt";
+
 	public CreationCsvFile() {
 		super();
 		this.regExps = new ArrayList<String>();
-		this.types  = new ArrayList<Type>();
+		this.types = new ArrayList<Type>();
 	}
-	
-	
+
 	public ArrayList<String> getRegExps() {
 		return regExps;
 	}
-
 
 	public ArrayList<Type> getTypes() {
 		return types;
 	}
 
-
 	public static String getLogfile() {
 		return logfile;
 	}
-
 
 	public static String getRegexpfile() {
 		return RegExpFile;
 	}
 
-
 	public static String getPattern(String field, ArrayList<String> regExps) {
+		// build the csv pattern (=type) of the "field" (ex: 1,1,0,0,1,0) from a list of RegEx
 		String pattern = "";
 
 		for (String s : regExps) {
 
-			if (field.matches(s)) {
+			if (field.matches(s))
 				pattern += " ,1";
-			} else {
-				//System.out.println(field+ " dont match "+ s);
+			else
 				pattern += " ,0";
-			}
+
 		}
-		
 		return pattern;
 	}
 
 	public void run() throws IOException {
-		
+
 		/**
 		 * Java software that take: - an expanded file of regular expressions (line
-		 * format : NAME regEx => cf. RegExp class) - a logfile (all the elements are separated with a
-		 * space) and output a CSV file for lattice production (each element is
-		 * separated with a comma so we can use this csv file in the creationLattice
-		 * package)
+		 * format : NAME regEx => cf. RegExp class) - a logfile (all the elements are
+		 * separated with a space) and output a CSV file for lattice production (each
+		 * element is separated with a comma so we can use this csv file in the
+		 * creationLattice package)
 		 **/
 		BufferedReader br = new BufferedReader(
-				new FileReader(RegExpFile));/* file of regular expressions ( expandedREDefs.txt) */
+				new FileReader(RegExpFile));/* file of regular expressions*/
 		BufferedReader br2 = new BufferedReader(new FileReader(logfile));/* logfile */
 
 		/** collect names of regEx **/
@@ -77,7 +68,6 @@ public class CreationCsvFile {
 		String regExNames = "";
 		String line;
 		RegExp rg;
-		
 
 		try {
 			line = br.readLine();
@@ -111,14 +101,14 @@ public class CreationCsvFile {
 
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
-				
+
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
 				Type type;
 
 				for (int i = 0; i < parts.length; i++) {
 					/* We analyze each part of the logfile: */
-					pattern = getPattern(parts[i],  regExps);
+					pattern = getPattern(parts[i], regExps);
 
 					lineCSV = parts[i] + pattern;
 
@@ -133,7 +123,7 @@ public class CreationCsvFile {
 						type.setReference(parts[i]);
 						lineCSV += " \n";
 						file.append(lineCSV);
-						System.out.println(parts[i]);
+						//System.out.println(parts[i]);
 					}
 					type.addExample(parts[i]);/* permit to count the number of examples */
 				}
@@ -144,16 +134,15 @@ public class CreationCsvFile {
 		} finally {
 			file.close();
 			br2.close();
+			System.out.println("csv file created");
 		}
-		
-		
+
 	}
 
-
 	public static void main(String[] args) throws IOException {
-		
+
 		CreationCsvFile csvFile = new CreationCsvFile();
 		csvFile.run();
-		
+
 	}
 }

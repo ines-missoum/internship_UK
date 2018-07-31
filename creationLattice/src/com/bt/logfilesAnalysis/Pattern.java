@@ -11,9 +11,8 @@ public class Pattern {
 	private ArrayList<LatticeElement> listNode = new ArrayList<LatticeElement>();
 	private int NumberOfExamples;
 
-	public Pattern(ArrayList<LatticeElement> listRegExp) {
-		super();
-		this.listNode = listRegExp;
+	public Pattern(ArrayList<LatticeElement> listNode) {
+		this.listNode = listNode;
 		NumberOfExamples = 0;
 	}
 
@@ -36,15 +35,15 @@ public class Pattern {
 	public String toString(Lattice l) {
 		String s = "";
 		for (LatticeElement node : this.getListNode()) {
-			s = s + SimilarityMeasure2.getMostSpecificRegExpString(node, l) + " ";
+			s = s + SimilarityMeasure2.getMostSpecificRegExpString(node) + " ";
 		}
 		return s;
 	}
 
 	public static Pattern getPattern(ArrayList<LatticeElement> listNode, ArrayList<Pattern> patterns, Lattice l) {
 		/*
-		 * It researches a type (from a pattern String) in the list. It returns the type
-		 * found or a new type (if not found).
+		 * It researches a pattern (from a nodes list) in the list of patterns . It
+		 * returns the pattern found or a new pattern (if not found).
 		 */
 
 		boolean found = false;
@@ -55,19 +54,17 @@ public class Pattern {
 		Pattern p = new Pattern(listNode);
 
 		while (!found && i < patterns.size()) {
-			equal=true;
+			equal = true;
 			if (patterns.get(i).getListNode().size() == listNode.size()) {
-				
+
 				while (equal && j < listNode.size()) {
-					
+					// We check if each element of the lists are equals one by one
 					specificRegExp1 = SimilarityMeasure2
-							.getMostSpecificRegExpString(patterns.get(i).getListNode().get(j), l);
-					specificRegExp2 = SimilarityMeasure2.getMostSpecificRegExpString(listNode.get(j), l);
+							.getMostSpecificRegExpString(patterns.get(i).getListNode().get(j));
+					specificRegExp2 = SimilarityMeasure2.getMostSpecificRegExpString(listNode.get(j));
 					equal = specificRegExp1.equals(specificRegExp2);
-					//System.out.println(specificRegExp1+"=="+specificRegExp2+" is "+equal);
 					j++;
 
-					// pour chaque element de la liste je verifie s'ils sont egales
 				}
 				found = equal;
 			}
