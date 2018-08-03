@@ -101,6 +101,7 @@ public class SimilarityMeasure2 {
 		FileWriter file = new FileWriter("highSimilarity.txt");
 		String highSimilarityCouple = "";
 		try {
+			System.out.println("similarities recording ...");
 
 			/* for all the couples of concepts : */
 			for (int i = 0; i < theLattice.getElements().size(); i++) {
@@ -112,36 +113,30 @@ public class SimilarityMeasure2 {
 						float similarity = getSimilarity(node1, node2);
 						if (similarity > threshold) {
 							// record
-							highSimilarityCouple = "node1 : " + node1.getConcept().getIntent() + "\n node2 : "
+							highSimilarityCouple = " node1 : " + node1.getConcept().getIntent() + "\n node2 : "
 									+ node2.getConcept().getIntent() + "\n similarity : " + similarity
 									+ "\n ________ \n";
 							file.append(highSimilarityCouple);
-							// print
-							System.out.println("node1 : " + node1.getConcept().getIntent());
-							System.out.println("node2 : " + node2.getConcept().getIntent());
-							System.out.println("similarity : " + similarity);
-							System.out.println("________");
 
 							highSimilarityCouple = "";
 						}
 					}
 				}
 			}
+			System.out.println(
+					"All the similarities upper than " + this.threshold + " are recorded (highSimilarity.txt)");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			file.close();
 		}
-
 	}
 
 	public LatticeElement getNode(String field) {
-		//////// c'est plutot un getNode
-		// print the most specific RegExp of a field(for the human to know) and return
-		// the node to
-		// apply the getSimilarity method
-		/* not always an only specific regexp, here we take the first one */
+
+		// return the most specific node that recognize the field
+
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 
 		boolean found = false;
@@ -153,7 +148,6 @@ public class SimilarityMeasure2 {
 			for (Element el : node.getConcept().getExtent().getReducedExtent(node.getDescendants())) {
 				if (el.getName().equals(field)) {
 					found = true;
-
 				}
 			}
 			i++;
@@ -162,28 +156,34 @@ public class SimilarityMeasure2 {
 	}
 
 	public static String getMostSpecificRegExpString(LatticeElement node) {
+		// return the name of one of the most specific regExp of a node
+
 		String s = "";
 
 		if (!node.getConcept().getIntent().reducedIntentString(node.getAncestors()).isEmpty()) {
 			String[] parts = node.getConcept().getIntent().reducedIntentString(node.getAncestors()).split("[, ]");
+			/* not always an only specific regEx, here we take the first one */
 			s = parts[0].replace("\"", "");
 		}
-
 		return s;
 	}
 
 	public ArrayList<Pattern> getAllPattern() throws IOException {
 
-		// return the list of patterns of the logfile and print it
-		FileWriter file = new FileWriter("allPattern.txt");
+		// record in a file the number of different patterns in the logfile, the list of
+		// these patterns and the number of examples of each one
+		// return the list of the different patterns
+
+		FileWriter file = new FileWriter("allPattern.txt");// file where the result is recorded
 		BufferedReader br2 = new BufferedReader(new FileReader(CreationCsvFile.getLogfile()));
 		String line_logfile;
 		String field;
 		ArrayList<LatticeElement> listNode = new ArrayList<LatticeElement>();
 		ArrayList<Pattern> patterns = new ArrayList<Pattern>();
-		// we find all the differents patterns
-		try {
 
+		// we find all the different patterns
+		try {
+			System.out.println("all the patterns recording ...");
 			// we build the pattern of the line
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
@@ -194,22 +194,22 @@ public class SimilarityMeasure2 {
 				listNode = new ArrayList<LatticeElement>();
 				for (int i = 0; i < parts.length; i++) {
 					reference = Type.findReference(parts[i], this.csvFile.getTypes());
-					field = reference + " ";// because the methode getName() used in getMostSpecificRegExp put a space
+					field = reference + " ";// because the methode getName() used in getNode put a space
 											// at the end.
 					listNode.add(getNode(field));
 				}
 
-				Pattern p = Pattern.getPattern(listNode, patterns, l);
+				Pattern p = Pattern.getPattern(listNode, patterns, l);//find the Pattern or return a new one 
+				
 				// we check if the pattern doesn't already exist:
-				if (p.getNumberOfExamples() == 0) {// new pattern
+				if (p.getNumberOfExamples() == 0) // if new pattern --> added in the list
 					patterns.add(p);
 
-				}
 				p.addAnExamples();
-
 				line_logfile = br2.readLine();
 			}
-			
+
+			//record the result in a file 
 			String s = "\n TOTAL : " + patterns.size() + " patterns \n";
 			file.append(s);
 			for (Pattern p : patterns) {
@@ -221,84 +221,83 @@ public class SimilarityMeasure2 {
 				s = s + "\n";
 				file.append(s);
 			}
-			
+
 			System.out.println("All the patterns are recorded (allPattern.txt)");
-		
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			br2.close();
 			file.close();
 		}
-		
-	
-		
+
 		return patterns;
 	}
 
 	public void derivePattern() throws IOException {
 
-		// print all the derived patterns
+		// record in a file all the couple that have enough similarity to be combined and the combined pattern
+		//record also the number of couples that can be combined
 		ArrayList<Pattern> patterns = getAllPattern();// list of all the patterns (without derivation)
-
 		ArrayList<Pattern> derivedPatterns = new ArrayList<Pattern>();// list of
 		// derived pattern
-		// faire une fonction qui prend en paramettre une liste de pattern
+		FileWriter file = new FileWriter("derivePattern.txt");
 		Pattern p;
-		for (int i = 0; i < patterns.size() - 1; i++) {
-			for (int j = i + 1; j < patterns.size(); j++) {
-				p = combinedPattern(patterns.get(i), patterns.get(j));
-				if (p.getListNode().size() != 0) {
-					System.out.println(patterns.get(i).toString(l));
-					System.out.println(patterns.get(j).toString(l));
-					System.out.println("change for : " + p.toString(l));
-					System.out.println("_____________________________");
-					derivedPatterns.add(p);
+		try {
+			System.out.println("derived patterns recording ...");
+			for (int i = 0; i < patterns.size() - 1; i++) {
+				for (int j = i + 1; j < patterns.size(); j++) {
+					p = combinedPattern(patterns.get(i), patterns.get(j));
+					if (p.getListNode().size() != 0) {
+						file.append(patterns.get(i).toString(l) + "\n");
+						file.append(patterns.get(j).toString(l) + "\n");
+						file.append("change for : \n" + p.toString(l) + "\n");
+						file.append("_____________________________ \n");
+						derivedPatterns.add(p);
+					}
 				}
 			}
+			file.append("TOTAL : " + derivedPatterns.size() + " couples can be combined");
+			System.out.println("All the possible derived patterns are recorded (derivePattern.txt)");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			file.close();
 		}
-
-		// print the number of derived patterns
-
 	}
 
 	public Pattern combinedPattern(Pattern p1, Pattern p2) {
 
 		// if the two patterns p1 and p2 have a big similarity, return a combined
-		// pattern, else return a new pattern.
+		// pattern (where the regexp at position i is given by
+		// R(i) = common ancestor(R1(i), R2(i)))
+		//else return a new pattern.
+		
+		// two patterns are similar only if they have the same size
 		boolean similar = (p2.getListNode().size() == p1.getListNode().size());
 		Pattern p = new Pattern(new ArrayList<>());
 		int i = 0;
 		boolean allSame = true;
 		LatticeElement n1, n2;
 		float similarity;
-		while (similar && i < p2.getListNode().size()) {
+		
+		while (similar && i < p2.getListNode().size()) { 
 
 			n1 = p1.getListNode().get(i);
 			n2 = p2.getListNode().get(i);
 
 			similarity = getSimilarity(n1, n2);
 			similar = similarity > this.threshold;
-
-			if (similarity == 1.0) {
+			// we calculate the similarity of each pair of field 
+			
+			if (similarity == 1.0) {// if the same node
 				p.getListNode().add(n1);
 
-			} else if (similar) {
-
+			} else if (similar) {//if the nodes are different but similar we replace node for the common ancestor
 				allSame = false;
-				/** p.changeNode(i, getGLB(n1, n2));CHANGE NODE A SUPP DE PATTERN **/
 				p.getListNode().add(getGLB(n1, n2));
-				// System.out.println(getMostSpecificRegExpString(p1.getListNode().get(i))+" and
-				// "+getMostSpecificRegExpString(p2.getListNode().get(i))+"change for
-				// :"+getMostSpecificRegExpString(getGLB(n1, n2))+" because "+
-				// getSimilarity(n1, n2));
-
-				// If we find two expressions R1, R2 where this is true, we can replace them
-				// with a new regexp pattern R where the regexp at position i is given by
-				// R(i) = common ancestor(R1(i), R2(i))
 			}
-
 			i++;
 		}
 		if (!similar || allSame) {
@@ -308,24 +307,23 @@ public class SimilarityMeasure2 {
 	}
 
 	public LatticeElement getGLB(LatticeElement node1, LatticeElement node2) {
-		/* return the GLB */
+		/* return the GLB of two nodes */
+		
 		LatticeElement GLB = node1;
 		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
 		boolean found = false;
 		int j = 0;
 
 		HashSet<Element> nodeExtent = new HashSet<Element>();
-		// System.out.println(!found && j < theLattice.getElements().size());
-		// System.out.println(" "+!found );
 
 		Set<Element> list1 = node1.getConcept().getExtent().getReducedExtent(node1.getDescendants());
 		Set<Element> list1Extent = new HashSet<Element>(node1.getConcept().getExtent().getElements());
 		Set<Element> list2 = node2.getConcept().getExtent().getReducedExtent(node2.getDescendants());
 		Set<Element> list2Extent = new HashSet<Element>(node2.getConcept().getExtent().getElements());
 
-		if (list1Extent.containsAll(list2)) {
+		if (list1Extent.containsAll(list2)) { //if node1 is an ancestor of node2
 			GLB = node1;
-		} else if (list2Extent.containsAll(list1)) {
+		} else if (list2Extent.containsAll(list1)) {//if node2 is an ancestor of node1
 			GLB = node2;
 		} else {
 			while (!found && j < theLattice.getElements().size()) {
@@ -366,19 +364,20 @@ public class SimilarityMeasure2 {
 
 		if (!silentMode)
 			System.out.print("creating lattice...");
-		this.l = new Lattice(c);
+		SimilarityMeasure2.l = new Lattice(c);
 		if (!silentMode)
 			System.out.println("done (" + l.getConcepts().size() + " concepts)");
 
+		//methods to run : 
 		recordAllBigSimilarity(this.threshold);
-		// getAllPattern();
-		//derivePattern();
+		getAllPattern();
+		derivePattern();
 		return 0;
 	}
 
 	public static void main(String[] args) throws IOException {
 
-		String theFile = "C:\\\\Users\\\\Inès MISSOUM\\\\Documents\\\\IG3\\\\Semestre 2\\\\internship UK\\\\creationLattice/lattice";
+		String theFile = "lattice";
 
 		if (args.length == 1) {
 			theFile = args[1];

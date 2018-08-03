@@ -28,10 +28,6 @@ public class Pattern {
 		NumberOfExamples++;
 	}
 
-	public void changeNode(int i, LatticeElement newNode) {
-		this.listNode.set(i, newNode);
-	}
-
 	public String toString(Lattice l) {
 		String s = "";
 		for (LatticeElement node : this.getListNode()) {
@@ -68,17 +64,12 @@ public class Pattern {
 				}
 				found = equal;
 			}
-
 			i++;
-
 		}
 
-		if (found) {
+		if (found)
 			p = patterns.get(i - 1);
-		}
 
 		return p;
-
 	}
-
 }
