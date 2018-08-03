@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Set;
 
 import com.bt.context.Context;
 import com.bt.graphml.ConceptUtil;
@@ -21,7 +21,7 @@ import com.bt.logfilesAnalysis.*;
 
 public class SimilarityMeasure2 {
 
-	private final double threshold = 0.3;
+	private final double threshold = 0.5;
 
 	private static Lattice l;
 	private String csv;
@@ -111,12 +111,12 @@ public class SimilarityMeasure2 {
 					if (node1 != node2) {
 						float similarity = getSimilarity(node1, node2);
 						if (similarity > threshold) {
-
-							highSimilarityCouple = "node1 : " + node1.getConcept().getIntent() + "\n";
-							highSimilarityCouple += "node2 : " + node2.getConcept().getIntent() + "\n";
-							highSimilarityCouple += "similarity : " + similarity + "\n";
-							highSimilarityCouple += "________ \n";
+							// record
+							highSimilarityCouple = "node1 : " + node1.getConcept().getIntent() + "\n node2 : "
+									+ node2.getConcept().getIntent() + "\n similarity : " + similarity
+									+ "\n ________ \n";
 							file.append(highSimilarityCouple);
+							// print
 							System.out.println("node1 : " + node1.getConcept().getIntent());
 							System.out.println("node2 : " + node2.getConcept().getIntent());
 							System.out.println("similarity : " + similarity);
@@ -136,7 +136,8 @@ public class SimilarityMeasure2 {
 
 	}
 
-	public LatticeElement getMostSpecificRegExp(String field) {
+	public LatticeElement getNode(String field) {
+		//////// c'est plutot un getNode
 		// print the most specific RegExp of a field(for the human to know) and return
 		// the node to
 		// apply the getSimilarity method
@@ -152,6 +153,7 @@ public class SimilarityMeasure2 {
 			for (Element el : node.getConcept().getExtent().getReducedExtent(node.getDescendants())) {
 				if (el.getName().equals(field)) {
 					found = true;
+
 				}
 			}
 			i++;
@@ -161,16 +163,19 @@ public class SimilarityMeasure2 {
 
 	public static String getMostSpecificRegExpString(LatticeElement node) {
 		String s = "";
-		if (!node.getConcept().getIntent().getElements().isEmpty()) {
-			Iterator<Integer> it = node.getConcept().getIntent().getElements().iterator();
-			s = l.getAttributes()[it.next()];
+
+		if (!node.getConcept().getIntent().reducedIntentString(node.getAncestors()).isEmpty()) {
+			String[] parts = node.getConcept().getIntent().reducedIntentString(node.getAncestors()).split("[, ]");
+			s = parts[0].replace("\"", "");
 		}
+
 		return s;
 	}
 
 	public ArrayList<Pattern> getAllPattern() throws IOException {
-		
-		//return the list of patterns of the logfile and print it (do we have to save it in a file ?)
+
+		// return the list of patterns of the logfile and print it
+		FileWriter file = new FileWriter("allPattern.txt");
 		BufferedReader br2 = new BufferedReader(new FileReader(CreationCsvFile.getLogfile()));
 		String line_logfile;
 		String field;
@@ -179,18 +184,19 @@ public class SimilarityMeasure2 {
 		// we find all the differents patterns
 		try {
 
-			//we build the pattern of the line
+			// we build the pattern of the line
 			line_logfile = br2.readLine();
 			while (line_logfile != null) {
 
-				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a space
+				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
+															// space
 				String reference = "";
 				listNode = new ArrayList<LatticeElement>();
 				for (int i = 0; i < parts.length; i++) {
 					reference = Type.findReference(parts[i], this.csvFile.getTypes());
 					field = reference + " ";// because the methode getName() used in getMostSpecificRegExp put a space
 											// at the end.
-					listNode.add(getMostSpecificRegExp(field));
+					listNode.add(getNode(field));
 				}
 
 				Pattern p = Pattern.getPattern(listNode, patterns, l);
@@ -203,53 +209,53 @@ public class SimilarityMeasure2 {
 
 				line_logfile = br2.readLine();
 			}
+			
+			String s = "\n TOTAL : " + patterns.size() + " patterns \n";
+			file.append(s);
+			for (Pattern p : patterns) {
+				s = "";
+				s = p.getNumberOfExamples() + " examples : ";
+				for (LatticeElement node : p.getListNode()) {
+					s = s + getMostSpecificRegExpString(node) + " ";
+				}
+				s = s + "\n";
+				file.append(s);
+			}
+			
+			System.out.println("All the patterns are recorded (allPattern.txt)");
+		
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			br2.close();
+			file.close();
 		}
 		
-		String s = "";
-		System.out.println("\n total : " + patterns.size() + " patterns");
-		for (Pattern p : patterns) {
-			s = "";
-			// if (p.getNumberOfExamples() > 1) {
-			// System.out.println(p.getListNode().toString());
-			s = p.getNumberOfExamples() + " examples : ";
-			for (LatticeElement node : p.getListNode()) {
-				s = s + getMostSpecificRegExpString(node) + " ";
-			}
-			s = s + "\n";
-			System.out.println(s);
-			// }
-
-		}
-
+	
+		
 		return patterns;
 	}
-	
+
 	public void derivePattern() throws IOException {
 
-		//print all the derived patterns
+		// print all the derived patterns
 		ArrayList<Pattern> patterns = getAllPattern();// list of all the patterns (without derivation)
-		
+
 		ArrayList<Pattern> derivedPatterns = new ArrayList<Pattern>();// list of
 		// derived pattern
 		// faire une fonction qui prend en paramettre une liste de pattern
 		Pattern p;
-		for (int i = 0; i < patterns.size(); i++) {
-			for (int j = i; j < patterns.size(); j++) {
-				if (patterns.get(i) != patterns.get(j)) {
-					p = combinedPattern(patterns.get(i), patterns.get(j));
-					if (p.getListNode().size() != 0) {
-						System.out.println(patterns.get(i).toString(l));
-						System.out.println(patterns.get(j).toString(l));
-						System.out.println("change for : " + p.toString(l));
-						System.out.println("_____________________________");
-						derivedPatterns.add(p);
-					}
+		for (int i = 0; i < patterns.size() - 1; i++) {
+			for (int j = i + 1; j < patterns.size(); j++) {
+				p = combinedPattern(patterns.get(i), patterns.get(j));
+				if (p.getListNode().size() != 0) {
+					System.out.println(patterns.get(i).toString(l));
+					System.out.println(patterns.get(j).toString(l));
+					System.out.println("change for : " + p.toString(l));
+					System.out.println("_____________________________");
+					derivedPatterns.add(p);
 				}
-
 			}
 		}
 
@@ -261,28 +267,41 @@ public class SimilarityMeasure2 {
 
 		// if the two patterns p1 and p2 have a big similarity, return a combined
 		// pattern, else return a new pattern.
-		boolean similar = p2.getListNode().size() == p1.getListNode().size();
-		Pattern p = p1;
+		boolean similar = (p2.getListNode().size() == p1.getListNode().size());
+		Pattern p = new Pattern(new ArrayList<>());
 		int i = 0;
+		boolean allSame = true;
 		LatticeElement n1, n2;
-
+		float similarity;
 		while (similar && i < p2.getListNode().size()) {
 
 			n1 = p1.getListNode().get(i);
 			n2 = p2.getListNode().get(i);
 
-			if (n1 != n2) {
-				similar = getSimilarity(n1, n2) > this.threshold;
+			similarity = getSimilarity(n1, n2);
+			similar = similarity > this.threshold;
 
-				if (similar)
-					p.changeNode(i, getGLB(n1, n2));
+			if (similarity == 1.0) {
+				p.getListNode().add(n1);
+
+			} else if (similar) {
+
+				allSame = false;
+				/** p.changeNode(i, getGLB(n1, n2));CHANGE NODE A SUPP DE PATTERN **/
+				p.getListNode().add(getGLB(n1, n2));
+				// System.out.println(getMostSpecificRegExpString(p1.getListNode().get(i))+" and
+				// "+getMostSpecificRegExpString(p2.getListNode().get(i))+"change for
+				// :"+getMostSpecificRegExpString(getGLB(n1, n2))+" because "+
+				// getSimilarity(n1, n2));
+
 				// If we find two expressions R1, R2 where this is true, we can replace them
 				// with a new regexp pattern R where the regexp at position i is given by
 				// R(i) = common ancestor(R1(i), R2(i))
 			}
+
 			i++;
 		}
-		if (!similar) {
+		if (!similar || allSame) {
 			p = new Pattern(new ArrayList<>());
 		}
 		return p;
@@ -290,25 +309,45 @@ public class SimilarityMeasure2 {
 
 	public LatticeElement getGLB(LatticeElement node1, LatticeElement node2) {
 		/* return the GLB */
-
 		LatticeElement GLB = node1;
-		HashSet<LatticeElement> commonAncestors = new HashSet<LatticeElement>(node1.getAncestors());
-		commonAncestors.retainAll(node2.getAncestors());
+		LatticeDiagram theLattice = ConceptUtil.makeLatticeDiagram(l);
+		boolean found = false;
+		int j = 0;
 
-		HashSet<LatticeElement> commonAncestorsGLB = commonAncestors;
-		if (commonAncestors.size() > 0) {
+		HashSet<Element> nodeExtent = new HashSet<Element>();
+		// System.out.println(!found && j < theLattice.getElements().size());
+		// System.out.println(" "+!found );
 
-			for (LatticeElement node : commonAncestors) {
-				commonAncestorsGLB.retainAll(node.getDescendants());
-				if (commonAncestorsGLB.size() == commonAncestors.size()) {
-					/* GLB is an ancestor which has no children in the commonAncestors list : */
-					GLB = node;
+		Set<Element> list1 = node1.getConcept().getExtent().getReducedExtent(node1.getDescendants());
+		Set<Element> list1Extent = new HashSet<Element>(node1.getConcept().getExtent().getElements());
+		Set<Element> list2 = node2.getConcept().getExtent().getReducedExtent(node2.getDescendants());
+		Set<Element> list2Extent = new HashSet<Element>(node2.getConcept().getExtent().getElements());
+
+		if (list1Extent.containsAll(list2)) {
+			GLB = node1;
+		} else if (list2Extent.containsAll(list1)) {
+			GLB = node2;
+		} else {
+			while (!found && j < theLattice.getElements().size()) {
+				Set<Element> list = list1;
+				list.addAll(list2);
+				list.addAll(theLattice.getElements().get(j).getConcept().getExtent()
+						.getReducedExtent(theLattice.getElements().get(j).getDescendants()));
+
+				nodeExtent = new HashSet<Element>(
+						theLattice.getElements().get(j).getConcept().getExtent().getElements());
+
+				if (nodeExtent.size() == list.size()) {
+					found = list.containsAll(nodeExtent) && (nodeExtent).containsAll(list);
 				}
-				commonAncestorsGLB = commonAncestors;
+				j++;
 			}
 		}
-		return GLB;
 
+		if (found) {
+			GLB = theLattice.getElements().get(j - 1);
+		}
+		return GLB;
 	}
 
 	/************************* RUN *********************************/
@@ -332,10 +371,8 @@ public class SimilarityMeasure2 {
 			System.out.println("done (" + l.getConcepts().size() + " concepts)");
 
 		recordAllBigSimilarity(this.threshold);
-
-		//derivePattern(CreationCsvFile.getLogfile());
-		//System.out.println(getMostSpecificRegExp("Sep "));
-		// un espace a chaque fois
+		// getAllPattern();
+		//derivePattern();
 		return 0;
 	}
 
