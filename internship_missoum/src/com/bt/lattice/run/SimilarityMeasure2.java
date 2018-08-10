@@ -28,7 +28,13 @@ public class SimilarityMeasure2 {
 
 	/** threshold for the similarity measure **/
 	private final double threshold = 0.5;
-
+	/**first line of the log file to read**/
+	private final int startLine = 1;
+	/**last line of the log file to read**/
+	private final int endLine = 120;
+	/**true if we want to read all the file, else false (in this case specify the startLine and endLine)**/
+	private final boolean readAllFile =false;
+	
 	private static Lattice l;
 	private String csv;
 	private final String CSVSUFFIX = ".csv";
@@ -47,7 +53,8 @@ public class SimilarityMeasure2 {
 	/**
 	 * get all the examples of the parameter node
 	 * 
-	 * @param node a node of the lattice 
+	 * @param node
+	 *            a node of the lattice
 	 * @return a set of all the examples of the node
 	 */
 	public HashSet<String> getAllExample(LatticeElement node) {
@@ -72,8 +79,10 @@ public class SimilarityMeasure2 {
 
 	/**
 	 * 
-	 * @param node1 a node of the lattice
-	 * @param node2 a node of the lattice
+	 * @param node1
+	 *            a node of the lattice
+	 * @param node2
+	 *            a node of the lattice
 	 * @return the cardinality of the two nodes intersection
 	 */
 	public int getIntersCardinality(LatticeElement node1, LatticeElement node2) {
@@ -91,8 +100,10 @@ public class SimilarityMeasure2 {
 
 	/**
 	 * 
-	 * @param node1 a node of the lattice
-	 * @param node2 a node of the lattice
+	 * @param node1
+	 *            a node of the lattice
+	 * @param node2
+	 *            a node of the lattice
 	 * @return the cardinality of the two nodes union
 	 */
 	public int getUnionCardinality(LatticeElement node1, LatticeElement node2) {
@@ -111,8 +122,10 @@ public class SimilarityMeasure2 {
 
 	/**
 	 * 
-	 * @param node1 a node of the lattice
-	 * @param node2 a node of the lattice
+	 * @param node1
+	 *            a node of the lattice
+	 * @param node2
+	 *            a node of the lattice
 	 * @return the similarity of the two nodes : number between 0 (low similarity)
 	 *         and 1 (high similarity)
 	 */
@@ -213,9 +226,9 @@ public class SimilarityMeasure2 {
 	}
 
 	/**
-	 * record in a file the number of different patterns in the log file, the list of
-	 * these patterns and the number of examples of each one return the list of the
-	 * different patterns
+	 * record in a file the number of different patterns in the log file, the list
+	 * of these patterns and the number of examples of each one return the list of
+	 * the different patterns
 	 * 
 	 * @return the list of the different patterns
 	 * @throws IOException
@@ -224,8 +237,8 @@ public class SimilarityMeasure2 {
 	public ArrayList<Pattern> getAllPattern() throws IOException {
 
 		FileWriter file = new FileWriter("C:\\Users\\Inès MISSOUM\\Desktop\\internship_missoum\\allPattern.txt");
-		// CHANGE PATH 
-		//file where the result is recorded
+		// CHANGE PATH
+		// file where the result is recorded
 
 		BufferedReader br2 = new BufferedReader(new FileReader(CreationCsvFile.getLogfile()));
 		String line_logfile;
@@ -237,8 +250,15 @@ public class SimilarityMeasure2 {
 		try {
 			System.out.println("all the patterns recording ...");
 			// we build the pattern of the line
+			
 			line_logfile = br2.readLine();
-			while (line_logfile != null) {
+			
+			for (int i = 1; i < this.startLine; ++i)
+				line_logfile = br2.readLine();
+			
+			int numberOfLines =this.endLine-this.startLine+1;
+			
+			while ((readAllFile ||numberOfLines>0) && line_logfile != null) {
 
 				String[] parts = line_logfile.split("[, ]");// all the elements of the logfile are separated with a
 															// space
@@ -259,6 +279,7 @@ public class SimilarityMeasure2 {
 
 				p.addAnExamples();
 				line_logfile = br2.readLine();
+				numberOfLines--;
 			}
 
 			// record the result in a file
@@ -287,44 +308,75 @@ public class SimilarityMeasure2 {
 	}
 
 	/**
-	 * record in a file all the couples that have enough similarity to be combined
-	 * and the combined pattern record also the number of couples that can be
-	 * combined
+	 * First, record in a file all the couples that have enough similarity to be
+	 * combined and the combined pattern record also the number of couples that can
+	 * be combined. Then record in another file all the patterns ( where the couples
+	 * that have a big similarity are replaced by the combined pattern)
 	 * 
 	 * @throws IOException
 	 *             FileNotFoundException
 	 */
 	public void derivePattern() throws IOException {
 
-		ArrayList<Pattern> patterns = getAllPattern();// list of all the patterns (without derivation)
+		ArrayList<Pattern> patterns = getAllPattern();// list of all the patterns (without derivation at the beginning)
 		ArrayList<Pattern> derivedPatterns = new ArrayList<Pattern>();// list of
 		// derived pattern
-		FileWriter file = new FileWriter("C:\\Users\\Inès MISSOUM\\Desktop\\internship_missoum\\derivePattern.txt");// CHANGE
+		FileWriter file1 = new FileWriter("C:\\Users\\Inès MISSOUM\\Desktop\\internship_missoum\\derivePattern.txt");// CHANGE
 		// PATH
-		
-		
+		FileWriter file2 = new FileWriter(
+				"C:\\Users\\Inès MISSOUM\\Desktop\\internship_missoum\\allDerivedPattern.txt");
+		// CHANGE PATH
+		boolean needToDeriveAgain = true;
+
 		Pattern p;
 		try {
 			System.out.println("derived patterns recording ...");
-			for (int i = 0; i < patterns.size() - 1; i++) {
-				for (int j = i + 1; j < patterns.size(); j++) {
-					p = combinedPattern(patterns.get(i), patterns.get(j));
-					if (p.getListNode().size() != 0) {
-						file.append(patterns.get(i).toString(l) + "\n");
-						file.append(patterns.get(j).toString(l) + "\n");
-						file.append("change for : \n" + p.toString(l) + "\n");
-						file.append("_____________________________ \n");
-						derivedPatterns.add(p);
+
+			while (needToDeriveAgain) {
+				needToDeriveAgain = false;
+				for (int i = 0; i < patterns.size() - 1; i++) {
+					for (int j = i + 1; j < patterns.size(); j++) {
+						p = combinedPattern(patterns.get(i), patterns.get(j));
+						if (p.getListNode().size() != 0) {
+							// if the patterns can be combined 
+							file1.append(patterns.get(i).toString(l) + "\n");
+							file1.append(patterns.get(j).toString(l) + "\n");
+							file1.append("change for : \n" + p.toString(l) + "\n");
+							file1.append("_____________________________ \n");
+							derivedPatterns.add(p);
+
+							patterns = p.replaceCouple(patterns, patterns.get(i), patterns.get(j),l);
+							
+
+							needToDeriveAgain = true;
+						}
 					}
 				}
+
 			}
-			file.append("TOTAL : " + derivedPatterns.size() + " couples can be combined");
+			file1.append("TOTAL : " + derivedPatterns.size() + " couples can be combined");
 			System.out.println("All the possible derived patterns are recorded (derivePattern.txt)");
+
+			// record the result in a file
+			String s = "\n TOTAL : " + patterns.size() + " patterns \n";
+			file2.append(s);
+			for (Pattern pat : patterns) {
+				s = "";
+				s = pat.getNumberOfExamples() + " examples : ";
+				for (LatticeElement node : pat.getListNode()) {
+					s = s + getMostSpecificRegExpString(node) + " ";
+				}
+				s = s + "\n";
+				file2.append(s);
+			}
+
+			System.out.println("All the derived patterns are recorded (allDerivedPattern.txt)");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			file.close();
+			file1.close();
+			file2.close();
 		}
 	}
 
@@ -375,8 +427,10 @@ public class SimilarityMeasure2 {
 
 	/**
 	 * 
-	 * @param node1 a node of the lattice
-	 * @param node2 a node of the lattice
+	 * @param node1
+	 *            a node of the lattice
+	 * @param node2
+	 *            a node of the lattice
 	 * @return return the GLB of two nodes
 	 */
 	public LatticeElement getGLB(LatticeElement node1, LatticeElement node2) {
@@ -423,7 +477,8 @@ public class SimilarityMeasure2 {
 	/**
 	 * 
 	 * @return 0, run method
-	 * @throws IOException FileNotFoundException
+	 * @throws IOException
+	 *             FileNotFoundException
 	 */
 	public int run() throws IOException {
 		Context c;
@@ -445,7 +500,7 @@ public class SimilarityMeasure2 {
 			System.out.println("done (" + l.getConcepts().size() + " concepts)");
 
 		// methods to run :
-		recordAllBigSimilarity();
+		// recordAllBigSimilarity();
 		getAllPattern();
 		derivePattern();
 		return 0;
